@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>La Colonia Marciana · micro:bit</title>
+  <style>
+    :root {
+      --bg-top: #180c0a; --bg-main: #130b0a; --bg-bottom: #0b0f1c; --panel: rgba(255,255,255,0.06);
+      --panel-dark: rgba(0,0,0,0.22); --border: rgba(255,255,255,0.1); --text: #ffffff;
+      --muted: rgba(255,255,255,0.72); --soft: rgba(255,255,255,0.56); --green: #8df0b2;
+      --shadow: 0 20px 50px rgba(0,0,0,0.3); --radius-xl: 28px; --radius-lg: 22px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--text); }
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top, rgba(255,130,67,0.18), transparent 30%),
+        radial-gradient(circle at 80% 20%, rgba(112,196,255,0.12), transparent 25%),
+        linear-gradient(to bottom, var(--bg-top), var(--bg-main) 55%, var(--bg-bottom));
+      overflow-x: hidden;
+    }
+    body::before {
+      content: ""; position: fixed; inset: 0; pointer-events: none; opacity: 0.18;
+      background-image: radial-gradient(white 1px, transparent 1px); background-size: 28px 28px;
+    }
+    body::after {
+      content: ""; position: fixed; left: 0; right: 0; bottom: 0; height: 220px; pointer-events: none;
+      background: linear-gradient(to top, rgba(195,86,38,0.38), transparent);
+    }
+    .container { max-width: 1280px; margin: 0 auto; padding: 40px 24px 56px; position: relative; z-index: 1; }
+    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow); backdrop-filter: blur(10px); }
+    .panel-dark { background: var(--panel-dark); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+    .hero { display: grid; grid-template-columns: 1.25fr 0.75fr; gap: 32px; padding: 32px; }
+    .badge { display: inline-flex; gap: 8px; align-items: center; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(255,195,150,0.22); background: rgba(255,138,74,0.12); color: #ffd7c2; font-size: 14px; }
+    h1 { font-size: clamp(2.6rem, 5vw, 4.5rem); line-height: 1; margin: 18px 0 0; }
+    h2 { font-size: clamp(1.6rem, 2.5vw, 2.2rem); margin: 0; } h3 { margin: 0; } p { margin: 0; }
+    .lead { margin-top: 20px; font-size: 1.12rem; line-height: 1.7; color: var(--muted); max-width: 780px; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 28px; }
+    .stat { padding: 16px; } .stat .label { color: var(--soft); font-size: 14px; } .stat .value { margin-top: 6px; font-weight: 700; font-size: 1.05rem; }
+    .status-list { display: grid; gap: 12px; margin-top: 18px; }
+    .status-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-radius: 18px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); }
+    .pill { padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 800; }
+    .pill.amber { background: #ffd36a; color: #4c3100; } .pill.green { background: #8df0b2; color: #08341d; } .pill.cyan { background: #89e2ff; color: #00394c; } .pill.violet { background: #caa4ff; color: #321156; }
+    .progress-bar { height: 12px; width: 100%; background: rgba(255,255,255,0.12); border-radius: 999px; overflow: hidden; margin-top: 12px; }
+    .progress-fill { height: 100%; width: 0%; background: var(--green); border-radius: 999px; transition: width 0.35s ease; }
+    .section { margin-top: 28px; }
+    .section-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; flex-wrap: wrap; margin-bottom: 24px; }
+    .subtext { color: var(--muted); margin-top: 8px; line-height: 1.6; }
+    button, input, select { font: inherit; }
+    .btn { border: 1px solid var(--border); background: rgba(0,0,0,0.22); color: white; border-radius: 18px; padding: 14px 18px; cursor: pointer; transition: transform .15s ease, background .15s ease, opacity .15s ease; }
+    .btn:hover { background: rgba(0,0,0,0.3); transform: translateY(-1px); }
+    .btn-primary { background: linear-gradient(90deg, #ff9a58, #f35e4f); border: none; box-shadow: 0 14px 30px rgba(243,94,79,0.25); }
+    .btn-primary:hover { filter: brightness(1.04); } .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+    .mission-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .mission-button { text-align: left; padding: 18px; border-radius: 22px; border: 1px solid var(--border); background: rgba(0,0,0,0.22); color: white; cursor: pointer; }
+    .mission-button.active { border-color: rgba(137,226,255,0.55); background: rgba(87,184,226,0.12); box-shadow: 0 8px 30px rgba(90,200,255,0.08); }
+    .mission-button.locked { opacity: 0.58; cursor: not-allowed; }
+    .mission-meta { color: var(--soft); font-size: 13px; margin-top: 10px; } .mission-state { color: rgba(255,255,255,0.62); font-size: 12px; margin-top: 12px; }
+    .main-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 24px; align-items: start; }
+    .mission-card { padding: 24px; }
+    .mission-tag { color: var(--soft); font-size: 14px; }
+    .mission-title { display: flex; align-items: center; gap: 12px; font-size: 1.9rem; margin-top: 8px; }
+    .small-title { color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: .18em; font-size: 12px; margin-bottom: 10px; }
+    .mission-columns { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin-top: 20px; }
+    .chip-wrap { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .chip { padding: 8px 12px; border-radius: 999px; font-size: 13px; background: rgba(255,255,255,0.08); border: 1px solid var(--border); color: rgba(255,255,255,0.86); }
+    .list { margin: 0; padding-left: 18px; color: rgba(255,255,255,0.82); line-height: 1.7; }
+    .side-panel { padding: 24px; } .stack { display: grid; gap: 16px; } .field, .info-box { padding: 16px; }
+    label { display: block; font-size: 14px; color: var(--soft); }
+    input, select { width: 100%; margin-top: 10px; padding: 14px 14px; border-radius: 14px; border: 1px solid var(--border); background: #120f18; color: white; }
+    .hint { color: rgba(255,255,255,0.45); font-size: 12px; margin-top: 8px; line-height: 1.5; }
+    .message { padding: 16px; border-radius: 18px; font-size: 14px; line-height: 1.6; }
+    .message.info { background: rgba(72,195,255,0.12); border: 1px solid rgba(72,195,255,0.2); color: #bfeeff; }
+    .message.success { background: rgba(120,240,170,0.12); border: 1px solid rgba(120,240,170,0.2); color: #bff6d4; }
+    .message.error { background: rgba(255,102,102,0.12); border: 1px solid rgba(255,102,102,0.22); color: #ffc7c7; }
+    .board-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .board-card { padding: 18px; }
+    .dashed-box { margin-top: 16px; padding: 12px; border-radius: 14px; border: 1px dashed rgba(255,255,255,0.16); color: rgba(255,255,255,0.58); font-size: 12px; line-height: 1.6; }
+    .two-cols { display: grid; grid-template-columns: 1fr 0.8fr; gap: 24px; margin-top: 24px; }
+    .sequence-wrap, .ranking-wrap, .teacher-box { padding: 20px; }
+    .sequence-list { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+    .sequence-item { padding: 10px 14px; border-radius: 999px; border: 1px solid var(--border); background: rgba(255,255,255,0.08); font-size: 14px; }
+    .sequence-item.done { background: rgba(120,240,170,0.12); border-color: rgba(120,240,170,0.2); color: #bff6d4; }
+    .ranking-list { display: grid; gap: 12px; margin-top: 16px; }
+    .ranking-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--border); background: rgba(255,255,255,0.05); }
+    .rank-left { display: flex; align-items: center; gap: 12px; }
+    .rank-num { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,0.1); font-size: 12px; font-weight: 800; }
+    .teacher-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 20px; }
+    .teacher-card { padding: 16px; border: 1px solid rgba(255,138,74,0.22); background: rgba(255,138,74,0.12); border-radius: 18px; }
+    .teacher-card p { color: rgba(255,245,237,0.88); font-size: 14px; line-height: 1.6; }
+    .teacher-toggle { background: rgba(255,138,74,0.12); border-color: rgba(255,138,74,0.22); color: #ffd7c2; }
+    .control-hud { position: relative; overflow: hidden; border: 1px solid rgba(137,226,255,0.14); background: radial-gradient(circle at center, rgba(85,220,255,0.08), transparent 42%), linear-gradient(180deg, rgba(10,25,34,0.7), rgba(8,13,25,0.72)); box-shadow: inset 0 0 40px rgba(80,210,255,0.05), 0 20px 40px rgba(0,0,0,0.2); }
+    .control-hud::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(137,226,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(137,226,255,0.08) 1px, transparent 1px); background-size: 28px 28px; pointer-events: none; opacity: 0.35; }
+    .control-topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; position: relative; z-index: 1; }
+    .control-badge { display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; padding: 8px 12px; border: 1px solid rgba(137,226,255,0.18); background: rgba(137,226,255,0.08); color: #bdefff; font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 700; }
+    .status-led { width: 10px; height: 10px; border-radius: 50%; background: #79f3b0; box-shadow: 0 0 12px rgba(121,243,176,0.9); animation: pulseLed 1.8s infinite ease-in-out; }
+    .hud-grid { display: grid; grid-template-columns: 280px 1fr; gap: 22px; align-items: start; position: relative; z-index: 1; }
+    .radar-wrap { display: flex; align-items: center; justify-content: center; min-height: 280px; }
+    .radar { position: relative; width: 230px; height: 230px; border-radius: 50%; border: 1px solid rgba(137,226,255,0.22); background: radial-gradient(circle, rgba(137,226,255,0.12) 0%, rgba(137,226,255,0.04) 35%, rgba(0,0,0,0) 36%), radial-gradient(circle, transparent 0 24%, rgba(137,226,255,0.16) 24.5% 25%, transparent 25.5% 49%, rgba(137,226,255,0.14) 49.5% 50%, transparent 50.5% 74%, rgba(137,226,255,0.12) 74.5% 75%, transparent 75.5% 100%), linear-gradient(180deg, rgba(0,0,0,0.16), rgba(0,0,0,0.08)); box-shadow: inset 0 0 40px rgba(137,226,255,0.08), 0 0 30px rgba(137,226,255,0.05); }
+    .radar::before, .radar::after { content: ""; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); background: rgba(137,226,255,0.18); }
+    .radar::before { width: 1px; height: 100%; } .radar::after { width: 100%; height: 1px; }
+    .radar-sweep { position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 0deg, rgba(137,226,255,0.0) 0deg, rgba(137,226,255,0.03) 300deg, rgba(137,226,255,0.35) 340deg, rgba(137,226,255,0.0) 360deg); animation: sweep 4s linear infinite; mix-blend-mode: screen; }
+    .radar-dot { position: absolute; width: 8px; height: 8px; border-radius: 50%; background: #9ef0ff; box-shadow: 0 0 12px rgba(158,240,255,0.9); }
+    .radar-dot.dot-a { left: 62%; top: 24%; } .radar-dot.dot-b { left: 28%; top: 58%; } .radar-dot.dot-c { left: 70%; top: 68%; }
+    .hud-panels { display: grid; gap: 16px; }
+    .hud-panel { border: 1px solid rgba(137,226,255,0.12); border-radius: 18px; background: rgba(255,255,255,0.03); padding: 16px; box-shadow: inset 0 0 20px rgba(137,226,255,0.03); }
+    .hud-panel .label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.16em; color: rgba(189,239,255,0.66); }
+    .hud-panel .value { margin-top: 8px; font-size: 1rem; color: rgba(255,255,255,0.9); line-height: 1.6; }
+    .hud-mini-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 14px; }
+    .hud-mini { padding: 12px; border-radius: 14px; border: 1px solid rgba(137,226,255,0.1); background: rgba(6,16,24,0.45); text-align: center; }
+    .hud-mini strong { display: block; margin-top: 6px; color: #bdefff; font-size: 0.95rem; }
+    .resource-btn { display: inline-flex; align-items: center; gap: 10px; margin-top: 16px; padding: 12px 16px; border-radius: 14px; border: 1px solid rgba(137,226,255,0.18); background: rgba(137,226,255,0.08); color: #c8f2ff; text-decoration: none; font-weight: 700; transition: transform .15s ease, background .15s ease; cursor: pointer; }
+    .resource-btn:hover { transform: translateY(-1px); background: rgba(137,226,255,0.14); }
+    .resource-caption { margin-top: 10px; color: rgba(255,255,255,0.58); font-size: 12px; line-height: 1.5; }
+    .image-modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; padding: 24px; background: rgba(5,8,18,0.86); z-index: 9999; backdrop-filter: blur(8px); }
+    .image-modal.open { display: flex; }
+    .image-modal-content { position: relative; max-width: min(1100px, 96vw); max-height: 92vh; background: rgba(10,14,28,0.95); border: 1px solid rgba(255,255,255,0.12); border-radius: 22px; box-shadow: 0 24px 80px rgba(0,0,0,0.45); overflow: hidden; }
+    .image-modal-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px; border-bottom: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); }
+    .image-modal-title { font-weight: 700; color: #c8f2ff; }
+    .image-modal-close { border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: white; border-radius: 12px; padding: 10px 12px; cursor: pointer; }
+    .image-modal-body { padding: 14px; }
+    .image-modal-body img { display: block; max-width: 100%; max-height: calc(92vh - 90px); margin: 0 auto; border-radius: 14px; background: white; }
+    @keyframes sweep { from { transform: rotate(0deg);} to { transform: rotate(360deg);} }
+    @keyframes pulseLed { 0%,100% { opacity:1; box-shadow: 0 0 12px rgba(121,243,176,0.9); } 50% { opacity:.5; box-shadow: 0 0 6px rgba(121,243,176,0.4); } }
+    @media (max-width: 1100px) { .hero, .main-grid, .two-cols, .hud-grid { grid-template-columns: 1fr; } .mission-grid, .board-grid, .teacher-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 760px) { .container { padding: 24px 16px 40px; } .hero { padding: 22px; } .stats, .mission-columns, .mission-grid, .board-grid, .teacher-grid, .hud-mini-grid { grid-template-columns: 1fr; } .btn { width: 100%; } .section-header { align-items: stretch; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <section class="panel hero">
+      <div>
+        <div class="badge">🚀 <span>Gamificación · micro:bit + IoT:bit + MakeCode</span></div>
+        <h1>La Colonia Marciana</h1>
+        <p class="lead">
+          Durante la noche marciana, varios sistemas de la base <strong style="color:#ffb389;">Horizonte Rojo</strong> han quedado desincronizados.
+          Cada equipo deberá usar su <strong style="color:#9ee9ff;">micro:bit</strong> y sus sensores para supervisar, reparar y reactivar la colonia antes del fallo crítico.
+        </p>
+        <div class="stats">
+          <div class="panel-dark stat"><div class="label">Misiones</div><div class="value">8</div></div>
+          <div class="panel-dark stat"><div class="label">Tecnología</div><div class="value">micro:bit + IoT:bit</div></div>
+          <div class="panel-dark stat"><div class="label">Programación</div><div class="value">MakeCode</div></div>
+        </div>
+      </div>
+      <div class="panel-dark" style="padding:24px; min-height:280px; display:flex; flex-direction:column; justify-content:space-between;">
+        <div>
+          <div class="small-title" style="margin-bottom:0; color:#b5ecff;">Estado de la estación</div>
+          <div class="status-list">
+            <div class="status-row"><span>Agua</span><span id="status-energy" class="pill amber">Inestable</span></div>
+            <div class="status-row"><span>Cultivos</span><span id="status-crops" class="pill green">Pendiente</span></div>
+            <div class="status-row"><span>Panel central</span><span id="status-radar" class="pill cyan">Parcial</span></div>
+            <div class="status-row"><span>Escudo / antena</span><span id="status-comms" class="pill violet">Desalineados</span></div>
+          </div>
+        </div>
+        <div class="panel-dark" style="padding:16px; border-color: rgba(255,138,74,0.22); background: rgba(255,138,74,0.12);">
+          <div style="font-size:14px; font-weight:700; color:#ffd7c2;">Progreso de la misión</div>
+          <p style="margin-top:10px; color:rgba(255,255,255,0.72);">Sistemas restaurados por <strong id="active-team-inline">Astrofísicos</strong>: <strong id="completed-count">0/8</strong></p>
+          <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+          <div class="panel-dark" style="padding:12px; margin-top:14px;">Equipo activo: <strong id="active-team" style="color:#9ee9ff;">Astrofísicos</strong></div>
+          <div id="all-complete-banner" class="message success" style="margin-top:14px; display:none;">COLONIA RESTAURADA</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel section" style="padding:32px;">
+      <div class="section-header">
+        <div>
+          <h2>Centro de desbloqueo de misiones</h2>
+          <p class="subtext">Supera cada reto original de micro:bit para activar el siguiente sistema de la base marciana.</p>
+        </div>
+        <button id="reset-btn" class="btn">Reiniciar progreso</button>
+      </div>
+      <div id="mission-grid" class="mission-grid"></div>
+    </section>
+
+    <section class="section main-grid">
+      <article id="mission-card" class="panel mission-card"></article>
+      <aside class="panel side-panel">
+        <h3 style="font-size:1.4rem;">Panel del comandante</h3>
+        <p class="subtext">Usa los controles para validar misiones, asignar puntos y desbloquear el siguiente sistema de la colonia.</p>
+        <div class="stack" style="margin-top:18px;">
+          <div class="panel-dark field">
+            <label for="team-select">Equipo en turno</label>
+            <select id="team-select"></select>
+          </div>
+          <div class="panel-dark info-box">
+            <div class="small-title">Misión seleccionada</div>
+            <div id="selected-mission-title" style="font-weight:700;"></div>
+            <div id="selected-mission-points" style="margin-top:8px; color:#9ee9ff; font-size:14px;"></div>
+          </div>
+          <div class="panel-dark info-box">
+            <div class="small-title">Estado actual</div>
+            <div id="selected-mission-state" style="font-weight:700;"></div>
+          </div>
+          <div class="panel-dark field">
+            <label for="code-input">Clave secreta de la misión</label>
+            <input id="code-input" type="text" placeholder="Introduce la clave" autocomplete="off" />
+            <div class="hint">La clave solo debe conocerla el profesorado.</div>
+          </div>
+          <button id="validate-btn" class="btn btn-primary">Validar misión y desbloquear la siguiente</button>
+          <div id="unlock-message" style="display:none;"></div>
+          <div id="completion-box" class="message success" style="display:none;">Todos los sistemas han sido reparados. El equipo puede ejecutar la misión final y completar el puzle de la estación.</div>
+          <div id="help-box" class="message info">Completa la misión actual para activar la siguiente. El progreso queda visible en el tablero general.</div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="panel section" style="padding:32px;">
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+        <span style="font-size:2rem;">🎮</span>
+        <h2>Tablero de gamificación del aula</h2>
+      </div>
+      <p class="subtext">Cada misión superada otorga una pieza de puzle, imprescindible para desbloquear el reto final.</p>
+      <div id="board-grid" class="board-grid" style="margin-top:24px;"></div>
+      <div class="two-cols">
+        <div class="panel-dark sequence-wrap">
+          <h3 style="color:#ffd7c2; font-size:1.05rem;">Secuencia de restauración</h3>
+          <div id="sequence-list" class="sequence-list"></div>
+        </div>
+        <div class="panel-dark ranking-wrap">
+          <h3 style="color:#9ee9ff; font-size:1.05rem;">Clasificación por equipos</h3>
+          <div id="ranking-list" class="ranking-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel section control-hud" style="padding:24px; border-style:dashed; border-color: rgba(255,138,74,0.22); background: rgba(0,0,0,0.22);">
+      <div class="control-topbar">
+        <div>
+          <h2 style="font-size:1.6rem; color:#ffd7c2;">Centro de Control de Misiones</h2>
+          <p class="subtext">Área restringida para supervisar claves, validar protocolos y coordinar el avance de la colonia.</p>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+          <div class="control-badge"><span class="status-led"></span> Conexión orbital estable</div>
+          <button id="teacher-toggle-btn" class="btn teacher-toggle">Abrir Centro de Control de Misiones</button>
+        </div>
+      </div>
+      <div class="hud-grid">
+        <div class="radar-wrap">
+          <div class="radar" aria-hidden="true">
+            <div class="radar-sweep"></div>
+            <div class="radar-dot dot-a"></div>
+            <div class="radar-dot dot-b"></div>
+            <div class="radar-dot dot-c"></div>
+          </div>
+        </div>
+        <div class="hud-panels">
+          <div class="hud-panel">
+            <div class="label">Estado del centro de mando</div>
+            <div class="value">Monitorización activa de sensores, códigos de acceso, progreso por equipos y protocolos MakeCode de la estación.</div>
+            <div class="hud-mini-grid">
+              <div class="hud-mini"><span>Canal</span><strong>IOT-BIT</strong></div>
+              <div class="hud-mini"><span>Sector</span><strong>Horizonte Rojo</strong></div>
+              <div class="hud-mini"><span>Modo</span><strong>Supervisión</strong></div>
+            </div>
+          </div>
+          <div id="teacher-login" style="max-width:100%;" class="panel-dark teacher-box">
+            <label for="teacher-password">Clave de acceso del comandante</label>
+            <input id="teacher-password" type="password" placeholder="Introduce la clave de acceso" />
+            <div id="teacher-error" class="message error" style="display:none; margin-top:12px;"></div>
+          </div>
+          <div id="teacher-area" style="display:none;">
+            <div id="teacher-grid" class="teacher-grid"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div id="imageModal" class="image-modal" onclick="closeMissionImage(event)">
+      <div class="image-modal-content" onclick="event.stopPropagation()">
+        <div class="image-modal-header">
+          <div id="imageModalTitle" class="image-modal-title">Esquema visual</div>
+          <button class="image-modal-close" type="button" onclick="closeMissionImage()">Cerrar</button>
+        </div>
+        <div class="image-modal-body">
+          <img id="imageModalImg" src="" alt="Esquema visual de bloques" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const missions = [
+      {id:"01", image:"Mision1.png", title:"Nivel de agua", icon:"💧", subtitle:"Control del Tanque de Agua", objective:"Detectar si un depósito está lleno o vacío y activar un servomotor para abrir o cerrar la compuerta.", materials:["micro:bit","IoT:bit","sensor de nivel de agua","servomotor","pantalla OLED"], sensors:["Sensor de nivel de agua","Servomotor","OLED"], challenge:"La colonia depende de un sistema de riego automatizado. Debéis medir el nivel del tanque principal, activar las compuertas correctas y asegurar que el agua llegue a los cultivos de forma segura.", logic:["Medir nivel con precisión","Abrir o cerrar compuerta con servomotor","Mostrar estado en OLED"], instructions:["Conecta el sensor de nivel y el servomotor a la IoT:bit.","Configura MakeCode para que el servomotor actúe según el nivel de agua.","Muestra el estado en la pantalla OLED."], puzzle:"Pieza de puzle: 1"},
+      {id:"02", image:"Mision2.png", title:"Humedad del suelo", icon:"🌱", subtitle:"Riego de Cultivos Marcianos", objective:"Medir humedad, mostrar aviso en OLED y simular la activación de riego.", materials:["micro:bit","IoT:bit","sensor de humedad del suelo","servomotor","pantalla OLED"], sensors:["Sensor de humedad","OLED","Servomotor"], challenge:"Los cultivos presentan estrés por humedad irregular. Debéis activar un sistema de riego inteligente que garantice condiciones óptimas para cada zona del invernadero.", logic:["Monitorizar humedad en tiempo real","Mostrar estado en OLED","Activar servomotor si el suelo está seco"], instructions:["Conecta el sensor de humedad a la IoT:bit.","Programa MakeCode para leer la humedad.","Muestra el estado en OLED y activa el servomotor si está seco."], puzzle:"Pieza de puzle: 1"},
+      {id:"03", image:"Mision3.png", title:"Panel de control", icon:"🖥️", subtitle:"Panel de Control de la Base", objective:"Integrar varios datos de sensores y mostrarlos de forma clara y ordenada en un tablero central con navegación por pulsador.", materials:["micro:bit","IoT:bit","pantalla OLED","pulsador","sensores de misiones previas"], sensors:["OLED","Pulsador","Datos de varios sensores"], challenge:"La colonia necesita un panel de control central que permita supervisar el rover, el tanque de agua y los cultivos. Debéis integrar la información en un único tablero central.", logic:["Recoger datos de varios sensores","Mostrar información en pantallas sucesivas","Navegar con pulsador"], instructions:["Integra los datos de varios sensores individuales.","Muestra la información en OLED de forma clara.","Añade un pulsador para navegar entre las pantallas disponibles."], puzzle:"Pieza de puzle: 1"},
+      {id:"04", image:"Mision4.png", title:"Distancia segura", icon:"📏", subtitle:"Rover Marciano – Evitar Obstáculos", objective:"Detectar obstáculos, calcular la distancia segura y evitar colisiones con el rover.", materials:["micro:bit","IoT:bit","sensor sonar"], sensors:["Sensor sonar"], challenge:"La superficie de Marte está llena de rocas, cráteres y zonas inestables. Debéis guiar al rover para que evite colisiones y llegue sin daños a su destino.", logic:["Detectar obstáculos","Calcular distancia segura","Evitar colisiones"], instructions:["Conecta el sensor sonar a la IoT:bit.","Programa MakeCode para medir distancias.","Activa una respuesta cuando el rover esté demasiado cerca de un obstáculo."], puzzle:"Pieza de puzle: 1"},
+      {id:"05", image:"Mision5.png", title:"Temperatura crítica", icon:"🌡️", subtitle:"Termostato de la Estación", objective:"Medir temperatura, humedad y presión, y mostrar sus valores en la pantalla OLED.", materials:["micro:bit","IoT:bit","sensor DHT11","pantalla OLED"], sensors:["DHT11","OLED"], challenge:"Los sistemas de climatización fallaron durante la tormenta de polvo. Debéis supervisar la temperatura y la humedad de la estación para proteger cultivos, experimentos y exploradores.", logic:["Leer temperatura y humedad","Visualizar valores en OLED","Supervisar condiciones críticas"], instructions:["Conecta el sensor DHT11 a la IoT:bit.","Programa MakeCode para leer temperatura y humedad.","Muestra los valores en la pantalla OLED."], puzzle:"Pieza de puzle: 1"},
+      {id:"06", image:"Mision6.png", title:"Luz ambiental", icon:"💡", subtitle:"Luz ambiental", objective:"Medir el nivel de luminosidad y accionar iluminación artificial a través de un LED amarillo externo.", materials:["micro:bit","sensor de luz interno","LED amarillo externo"], sensors:["Sensor de luz interno","LED amarillo externo"], challenge:"La iluminación artificial ha sufrido interferencias. Debéis monitorizar la intensidad lumínica y activar mecanismos auxiliares para garantizar el crecimiento óptimo de los cultivos.", logic:["Medir luminosidad","Activar iluminación auxiliar","Mantener la cantidad justa de luz"], instructions:["Usa el sensor de luz interno de la micro:bit.","Conecta un LED amarillo externo.","Programa MakeCode para encender el LED cuando la luz sea insuficiente."], puzzle:"Pieza de puzle: 1"},
+      {id:"07", image:"Mision7.png", title:"Estabilizar antena de comunicación", icon:"📡", subtitle:"Estabilizar antena de comunicación", objective:"Detectar una inclinación específica de la micro:bit y activar el LED verde como confirmación de transmisión.", materials:["micro:bit","sensor de inclinación interno","LED verde externo"], sensors:["Inclinación micro:bit","LED verde externo"], challenge:"La antena principal ha quedado desincronizada. Debéis inclinar la micro:bit con precisión para enviar una señal manual codificada y restablecer la comunicación orbital.", logic:["Detectar inclinación en mg","Comprobar rango válido","Confirmar transmisión con LED verde"], instructions:["Usa el acelerómetro interno de la micro:bit.","Define el rango exacto de inclinación en MakeCode.","Activa el LED verde cuando la orientación sea correcta."], puzzle:"Pieza de puzle: 1"},
+      {id:"08", image:"Mision8.png", title:"Alineación del Escudo Magnético", icon:"🧭", subtitle:"Alineación del Escudo Magnético", objective:"Orientar el núcleo del escudo con precisión usando la brújula de la micro:bit y activar el LED rojo cuando la alineación sea correcta.", materials:["micro:bit","brújula interna","LED rojo externo"], sensors:["Brújula / magnetómetro interno","LED rojo externo"], challenge:"El escudo magnético ha perdido su orientación. Debéis orientar la micro:bit hasta alcanzar el ángulo correcto para proteger la colonia de la radiación cósmica.", logic:["Leer ángulo del magnetómetro","Comparar con el rango permitido","Confirmar alineación con LED rojo"], instructions:["Calibra la brújula de la micro:bit.","Lee el ángulo en MakeCode.","Activa el LED rojo cuando el escudo esté alineado correctamente."], puzzle:"Pieza de puzle: 1"}
+    ];
+    const missionCodes = ["TANQUE-AGUA","SUELO-HUMEDO","BASE-PANEL","SONAR-SEGURO","TERMOSTATO-ROJO","LUZ-OLED","ANTENA-VERDE","ESCUDO-NORTE"];
+    const missionPoints = [50,75,100,125,150,175,200,250];
+    const teams = ["Astrofísicos","Astrobiólogos","Geólogos Planetarios","Ingenieros Energéticos"];
+    const teacherPassword = "COMANDANTE-ARES";
+
+    let selectedMission = 0, selectedTeam = teams[0], teacherMode = false;
+    let teamProgress = Object.fromEntries(teams.map(team => [team, {unlockedMissions:[0], completedMissions:[], score:0}]));
+
+    const $ = (id) => document.getElementById(id);
+    const currentTeamData = () => teamProgress[selectedTeam];
+    const isUnlocked = (i) => currentTeamData().unlockedMissions.includes(i);
+    const isCompleted = (i) => currentTeamData().completedMissions.includes(i);
+
+    function renderMissionGrid() {
+      $("mission-grid").innerHTML = missions.map((m,i) => {
+        const unlocked = isUnlocked(i), completed = isCompleted(i), active = selectedMission===i;
+        return `<button class="mission-button ${active && unlocked ? "active" : ""} ${!unlocked ? "locked" : ""}" data-index="${i}" ${!unlocked ? "disabled" : ""}>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:1.9rem;">${completed ? "✅" : unlocked ? m.icon : "🔒"}</span>
+            <span style="width:12px;height:12px;border-radius:50%;background:${completed ? "#8df0b2" : unlocked ? "#ffd36a" : "rgba(255,255,255,0.18)"};"></span>
+          </div>
+          <div class="mission-meta">Misión ${m.id}</div>
+          <div style="margin-top:6px; font-weight:700; line-height:1.4;">${m.title}</div>
+          <div class="mission-state">${completed ? "Sistema reparado" : unlocked ? "Disponible" : "Bloqueada"}</div>
+        </button>`;
+      }).join("");
+      document.querySelectorAll(".mission-button").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const index = Number(btn.dataset.index);
+          if (!isUnlocked(index)) return;
+          selectedMission = index;
+          renderAll();
+        });
+      });
+    }
+
+    function renderMissionCard() {
+      const m = missions[selectedMission];
+      $("mission-card").innerHTML = `
+        <div style="display:flex; justify-content:space-between; gap:16px; align-items:flex-start; flex-wrap:wrap;">
+          <div>
+            <div class="mission-tag">Misión ${m.id}</div>
+            <div class="mission-title"><span>${m.icon}</span><span>${m.title}</span></div>
+            <div style="margin-top:8px; color:rgba(255,255,255,0.7); font-weight:600;">${m.subtitle}</div>
+          </div>
+          <div class="panel-dark" style="padding:10px 14px; font-size:14px; color:rgba(255,255,255,0.72);">${isCompleted(selectedMission) ? "Superada" : isUnlocked(selectedMission) ? "Activa" : "Bloqueada"}</div>
+        </div>
+        <div style="margin-top:22px;">
+          <div class="small-title">Narrativa</div>
+          <p style="color:rgba(255,255,255,0.82); line-height:1.7;">${m.challenge}</p>
+        </div>
+        <div style="margin-top:22px;">
+          <div class="small-title">Objetivo</div>
+          <p style="color:rgba(255,255,255,0.86); line-height:1.7;">${m.objective}</p>
+        </div>
+        <div class="mission-columns">
+          <div class="panel-dark" style="padding:16px;">
+            <div style="font-weight:700; color:#9ee9ff;">Materiales</div>
+            <ul class="list" style="margin-top:10px;">${m.materials.map(item => `<li>${item}</li>`).join("")}</ul>
+          </div>
+          <div class="panel-dark" style="padding:16px;">
+            <div style="font-weight:700; color:#bff6d4;">Sensores y lógica</div>
+            <ul class="list" style="margin-top:10px;">${m.sensors.map(item => `<li>${item}</li>`).join("")}${m.logic.map(item => `<li>${item}</li>`).join("")}</ul>
+          </div>
+        </div>
+        <div class="panel-dark" style="padding:16px; margin-top:18px;">
+          <div style="font-weight:700; color:#d4b7ff;">Instrucciones básicas</div>
+          <ul class="list" style="margin-top:10px;">${m.instructions.map(item => `<li>${item}</li>`).join("")}</ul>
+          <button class="resource-btn" type="button" onclick="openMissionImage('${m.image}', 'Misión ${m.id}: ${m.title}')">🖼️ Ver esquema visual de bloques</button>
+          <div class="resource-caption">Abre la imagen de referencia de esta misión para que el alumnado pueda consultarla mientras programa en MakeCode.</div>
+          <div class="chip-wrap"><span class="chip">${m.puzzle}</span><span class="chip">MakeCode</span><span class="chip">IoT:bit</span></div>
+        </div>`;
+    }
+
+    function renderCommanderPanel() {
+      $("team-select").innerHTML = teams.map(team => `<option value="${team}" ${team===selectedTeam ? "selected":""}>${team}</option>`).join("");
+      $("selected-mission-title").textContent = `${missions[selectedMission].id} · ${missions[selectedMission].title}`;
+      $("selected-mission-points").textContent = `Valor: ${missionPoints[selectedMission]} puntos`;
+      $("selected-mission-state").textContent = isCompleted(selectedMission) ? "Sistema restaurado" : isUnlocked(selectedMission) ? "Lista para completar" : "Bloqueada";
+      $("active-team").textContent = selectedTeam;
+      $("active-team-inline").textContent = selectedTeam;
+      const validateBtn = $("validate-btn");
+      validateBtn.disabled = !isUnlocked(selectedMission) || isCompleted(selectedMission);
+      validateBtn.textContent = isCompleted(selectedMission) ? "Misión ya superada" : "Validar misión y desbloquear la siguiente";
+      $("team-select").onchange = (e) => {
+        selectedTeam = e.target.value;
+        if (!isUnlocked(selectedMission)) selectedMission = currentTeamData().unlockedMissions[0] ?? 0;
+        renderAll();
+      };
+    }
+
+    function renderBoard() {
+      $("board-grid").innerHTML = missions.map((m,i) => `
+        <div class="panel-dark board-card">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:1.8rem;">${isCompleted(i) ? "✅" : isUnlocked(i) ? m.icon : "🔒"}</span>
+            <span style="width:12px;height:12px;border-radius:50%;background:${isCompleted(i) ? "#8df0b2" : isUnlocked(i) ? "#ffd36a" : "rgba(255,255,255,0.18)"};"></span>
+          </div>
+          <div style="margin-top:12px; color:rgba(255,255,255,0.62); font-size:13px;">Misión ${m.id}</div>
+          <div style="margin-top:4px; font-weight:700; line-height:1.4;">${m.title}</div>
+          <div class="dashed-box">Estado de ${selectedTeam}: ${isCompleted(i) ? "Superada" : isUnlocked(i) ? "Disponible" : "Bloqueada"}<br>Puntos: ${missionPoints[i]}</div>
+        </div>`).join("");
+      $("sequence-list").innerHTML = missions.map((m,i) => `<div class="sequence-item ${isCompleted(i) ? "done" : ""}">${m.id} · ${m.title}</div>`).join("");
+    }
+
+    function renderRanking() {
+      const ranking = Object.entries(teamProgress).map(([team, data]) => [team, data.score]).sort((a,b)=>b[1]-a[1]);
+      $("ranking-list").innerHTML = ranking.map(([team, score], i) => `<div class="ranking-item"><div class="rank-left"><div class="rank-num">${i+1}</div><div>${team}</div></div><strong style="color:#9ee9ff;">${score} pts</strong></div>`).join("");
+    }
+
+    function renderStatus() {
+      $("status-energy").textContent = isCompleted(0) ? "Restablecido" : "Inestable";
+      $("status-crops").textContent = isCompleted(1) ? "Estables" : "Pendiente";
+      $("status-radar").textContent = isCompleted(2) ? "Operativo" : "Parcial";
+      $("status-comms").textContent = isCompleted(7) ? "Alineados" : "Desalineados";
+      const completedCount = currentTeamData().completedMissions.length;
+      const progress = Math.round((completedCount / missions.length) * 100);
+      $("completed-count").textContent = `${completedCount}/8`;
+      $("progress-fill").style.width = `${progress}%`;
+      $("all-complete-banner").style.display = completedCount === missions.length ? "block" : "none";
+      $("completion-box").style.display = completedCount === missions.length ? "block" : "none";
+      $("help-box").style.display = completedCount === missions.length ? "none" : "block";
+    }
+
+    function setUnlockMessage(text, type) {
+      const box = $("unlock-message");
+      box.className = `message ${type}`;
+      box.textContent = text;
+      box.style.display = "block";
+    }
+
+    function validateCurrentMission() {
+      if (!isUnlocked(selectedMission) || isCompleted(selectedMission)) return;
+      const typedCode = $("code-input").value.trim().toUpperCase();
+      const expectedCode = missionCodes[selectedMission];
+      if (typedCode !== expectedCode) {
+        setUnlockMessage(`Código incorrecto para la misión ${missions[selectedMission].id}. Usa la clave de mando correcta.`, "error");
+        return;
+      }
+      teamProgress[selectedTeam].completedMissions.push(selectedMission);
+      teamProgress[selectedTeam].score += missionPoints[selectedMission];
+      const nextIndex = selectedMission + 1;
+      if (nextIndex < missions.length && !teamProgress[selectedTeam].unlockedMissions.includes(nextIndex)) {
+        teamProgress[selectedTeam].unlockedMissions.push(nextIndex);
+        setUnlockMessage(`Misión ${missions[selectedMission].id} completada. ${selectedTeam} obtiene ${missionPoints[selectedMission]} puntos y se habilita la misión ${missions[nextIndex].id}.`, "info");
+        selectedMission = nextIndex;
+      } else {
+        setUnlockMessage(`Misión ${missions[selectedMission].id} completada. ${selectedTeam} obtiene ${missionPoints[selectedMission]} puntos. Todas las misiones de este equipo han sido restauradas.`, "success");
+      }
+      $("code-input").value = "";
+      renderAll();
+    }
+
+    function resetProgress() {
+      selectedMission = 0; selectedTeam = teams[0]; teacherMode = false;
+      teamProgress = Object.fromEntries(teams.map(team => [team, {unlockedMissions:[0], completedMissions:[], score:0}]));
+      $("code-input").value = ""; $("teacher-password").value = ""; $("unlock-message").style.display = "none"; $("teacher-error").style.display = "none";
+      renderAll();
+    }
+
+    function renderTeacherArea() {
+      const teacherArea = $("teacher-area"), login = $("teacher-login"), btn = $("teacher-toggle-btn");
+      if (teacherMode) {
+        login.style.display = "none"; teacherArea.style.display = "block"; btn.textContent = "Cerrar Centro de Control de Misiones";
+        $("teacher-grid").innerHTML = missions.map((m,i) => `<div class="teacher-card"><div style="display:flex; justify-content:space-between; align-items:center; gap:10px;"><span style="font-size:1.7rem;">${m.icon}</span><span style="font-size:12px; padding:6px 10px; border-radius:999px; background:rgba(0,0,0,0.2);">Misión ${m.id}</span></div><div style="margin-top:12px; font-weight:700;">${m.title}</div><p style="margin-top:10px;">Código: <strong>${missionCodes[i]}</strong></p><p>Puntos: ${missionPoints[i]}</p><p>Equipos que la han superado: ${teams.filter(team => teamProgress[team].completedMissions.includes(i)).length}</p></div>`).join("");
+      } else {
+        login.style.display = "block"; teacherArea.style.display = "none"; btn.textContent = "Abrir Centro de Control de Misiones";
+      }
+    }
+
+    function toggleTeacherMode() {
+      const input = $("teacher-password").value, errorBox = $("teacher-error");
+      if (teacherMode) {
+        teacherMode = false; errorBox.style.display = "none"; renderTeacherArea(); return;
+      }
+      if (input === teacherPassword) {
+        teacherMode = true; errorBox.style.display = "none"; renderTeacherArea();
+      } else {
+        errorBox.textContent = "Clave de acceso incorrecta."; errorBox.style.display = "block";
+      }
+    }
+
+    function openMissionImage(src, title) {
+      const modal = $("imageModal");
+      $("imageModalImg").src = src;
+      $("imageModalTitle").textContent = title;
+      modal.classList.add("open");
+    }
+
+    function closeMissionImage(event) {
+      if (event && event.target && event.target.closest(".image-modal-content")) return;
+      const modal = $("imageModal");
+      modal.classList.remove("open");
+      $("imageModalImg").src = "";
+    }
+
+    function renderAll() {
+      renderMissionGrid(); renderMissionCard(); renderCommanderPanel(); renderBoard(); renderRanking(); renderStatus(); renderTeacherArea();
+    }
+
+    $("validate-btn").addEventListener("click", validateCurrentMission);
+    $("reset-btn").addEventListener("click", resetProgress);
+    $("teacher-toggle-btn").addEventListener("click", toggleTeacherMode);
+    $("code-input").addEventListener("keydown", (e) => { if (e.key === "Enter") validateCurrentMission(); });
+    $("teacher-password").addEventListener("keydown", (e) => { if (e.key === "Enter") toggleTeacherMode(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeMissionImage(); });
+
+    renderAll();
+  </script>
+</body>
+</html>
