@@ -489,33 +489,14 @@
     }
 
 	async function resetSheet() {
-	  try {
-	    // 1️⃣ Reset en la hoja via Apps Script
-	    const response = await fetch(API_URL, {
-	      method: "POST",
-	      headers: { "Content-Type": "application/json" },
-	      body: JSON.stringify({ reset: true }) // ⚡ Indicamos que es un reset
-	    });
-	    const result = await response.text();
-	    console.log("Respuesta reset:", result);  // Debería mostrar "SHEET_RESET"
+	  await fetch(API_URL, {
+	    method: "POST",
+	    headers: {"Content-Type": "application/json"},
+	    body: JSON.stringify({reset: true})
+	  });
 
-	    // 2️⃣ Reiniciar los datos locales
-	    teams.forEach(team => {
-	      teamProgress[team].score = 0;
-	      teamProgress[team].completedMissions = [];
-	      teamProgress[team].unlockedMissions = [0]; // solo la primera misión desbloqueada
-	    });
-	    selectedMission = 0;
-	    selectedTeam = teams[0];
-
-	    // 3️⃣ Refrescar la UI
-	    if (typeof updateUI === "function") updateUI(); // tu función que refresca misión, ranking, progreso, etc.
-
-	    alert("Progreso reiniciado correctamente!");
-	  } catch (err) {
-	    console.error("Error al reiniciar:", err);
-	    alert("No se pudo reiniciar el progreso.");
-	  }
+	  // No intentamos leer la respuesta → evitamos CORS
+	  console.log("Petición de reset enviada"); 
 	}
 	
 	function resetAll() {
