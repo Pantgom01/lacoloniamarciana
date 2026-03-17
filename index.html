@@ -282,6 +282,7 @@
   </div>
 
   <script>
+  	const API_URL = "https://script.google.com/macros/s/AKfycbwncLCK-okq26_nYi_8GuXTKIcQQwYPJJ0nP45tIcF7a7X5LesU_2yKwV5RO6t0LalG/exec";
     const missions = [
       {id:"01", image:"Mision1.png", title:"Nivel de agua", icon:"💧", subtitle:"Control del Tanque de Agua", objective:"Detectar si un depósito está lleno o vacío y activar un servomotor para abrir o cerrar la compuerta.", materials:["micro:bit","IoT:bit","sensor de nivel de agua","servomotor","pantalla OLED"], sensors:["Sensor de nivel de agua","Servomotor","OLED"], challenge:"La colonia depende de un sistema de riego automatizado. Debéis medir el nivel del tanque principal, activar las compuertas correctas y asegurar que el agua llegue a los cultivos de forma segura.", logic:["Medir nivel con precisión","Abrir o cerrar compuerta con servomotor","Mostrar estado en OLED"], instructions:["Conecta el sensor de nivel y el servomotor a la IoT:bit.","Configura MakeCode para que el servomotor actúe según el nivel de agua.","Muestra el estado en la pantalla OLED."], puzzle:"Pieza de puzle: 1"},
       {id:"02", image:"Mision2.png", title:"Humedad del suelo", icon:"🌱", subtitle:"Riego de Cultivos Marcianos", objective:"Medir humedad, mostrar aviso en OLED y simular la activación de riego.", materials:["micro:bit","IoT:bit","sensor de humedad del suelo","servomotor","pantalla OLED"], sensors:["Sensor de humedad","OLED","Servomotor"], challenge:"Los cultivos presentan estrés por humedad irregular. Debéis activar un sistema de riego inteligente que garantice condiciones óptimas para cada zona del invernadero.", logic:["Monitorizar humedad en tiempo real","Mostrar estado en OLED","Activar servomotor si el suelo está seco"], instructions:["Conecta el sensor de humedad a la IoT:bit.","Programa MakeCode para leer la humedad.","Muestra el estado en OLED y activa el servomotor si está seco."], puzzle:"Pieza de puzle: 1"},
@@ -304,6 +305,31 @@
     const currentTeamData = () => teamProgress[selectedTeam];
     const isUnlocked = (i) => currentTeamData().unlockedMissions.includes(i);
     const isCompleted = (i) => currentTeamData().completedMissions.includes(i);
+
+	async function cargarDatos() {
+	  const res = await fetch(API_URL);
+	  const data = await res.json();
+
+	  data.forEach(row => {
+	    if (teamProgress[row.equipo]) {
+	      teamProgress[row.equipo].score = Number(row.puntos);
+	      try {
+	        teamProgress[row.equipo].completedMissions = JSON.parse(row.completadas || "[]");
+	      } catch {
+	        teamProgress[row.equipo].completedMissions = [];
+	      }
+
+	      // desbloqueadas = completadas + siguiente
+	      const max = Math.max(-1, ...teamProgress[row.equipo].completedMissions);
+	      teamProgress[row.equipo].unlockedMissions = [0];
+	      for (let i = 1; i <= max + 1; i++) {
+	        teamProgress[row.equipo].unlockedMissions.push(i);
+	      }
+	    }
+	  });
+
+	  renderAll();
+	}
 
     function renderMissionGrid() {
       $("mission-grid").innerHTML = missions.map((m,i) => {
@@ -422,7 +448,16 @@
       box.textContent = text;
       box.style.display = "block";
     }
-
+	async function guardarDatos(team) {
+	  await fetch(API_URL, {
+	    method: "POST",
+	    body: JSON.stringify({
+	      equipo: team,
+	      puntos: teamProgress[team].score,
+	      completadas: teamProgress[team].completedMissions
+	    })
+	  });
+	}
     function validateCurrentMission() {
       if (!isUnlocked(selectedMission) || isCompleted(selectedMission)) return;
       const typedCode = $("code-input").value.trim().toUpperCase();
@@ -443,6 +478,7 @@
       }
       $("code-input").value = "";
       renderAll();
+      guardarDatos(selectedTeam);
     }
 
     function resetProgress() {
@@ -499,7 +535,10 @@
     $("teacher-password").addEventListener("keydown", (e) => { if (e.key === "Enter") toggleTeacherMode(); });
     document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeMissionImage(); });
 
-    renderAll();
+    cargarDatos();
+    // refresco automático cada 5 segundos
+	setInterval(cargarDatos, 5000);
+
   </script>
 </body>
 </html>
