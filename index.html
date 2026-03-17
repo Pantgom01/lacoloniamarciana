@@ -282,7 +282,7 @@
   </div>
 
   <script>
-  	const API_URL = "https://script.google.com/macros/s/AKfycbwncLCK-okq26_nYi_8GuXTKIcQQwYPJJ0nP45tIcF7a7X5LesU_2yKwV5RO6t0LalG/exec";
+  	const API_URL = "https://script.google.com/macros/s/AKfycbyDgR6XV_ThbVHzo77FzxAQlZnuswwIUo5Js8XSF79GTaQMuOsy_3F35ffrHw1k80bR/exec";
     const missions = [
       {id:"01", image:"Mision1.png", title:"Nivel de agua", icon:"💧", subtitle:"Control del Tanque de Agua", objective:"Detectar si un depósito está lleno o vacío y activar un servomotor para abrir o cerrar la compuerta.", materials:["micro:bit","IoT:bit","sensor de nivel de agua","servomotor","pantalla OLED"], sensors:["Sensor de nivel de agua","Servomotor","OLED"], challenge:"La colonia depende de un sistema de riego automatizado. Debéis medir el nivel del tanque principal, activar las compuertas correctas y asegurar que el agua llegue a los cultivos de forma segura.", logic:["Medir nivel con precisión","Abrir o cerrar compuerta con servomotor","Mostrar estado en OLED"], instructions:["Conecta el sensor de nivel y el servomotor a la IoT:bit.","Configura MakeCode para que el servomotor actúe según el nivel de agua.","Muestra el estado en la pantalla OLED."], puzzle:"Pieza de puzle: 1"},
       {id:"02", image:"Mision2.png", title:"Humedad del suelo", icon:"🌱", subtitle:"Riego de Cultivos Marcianos", objective:"Medir humedad, mostrar aviso en OLED y simular la activación de riego.", materials:["micro:bit","IoT:bit","sensor de humedad del suelo","servomotor","pantalla OLED"], sensors:["Sensor de humedad","OLED","Servomotor"], challenge:"Los cultivos presentan estrés por humedad irregular. Debéis activar un sistema de riego inteligente que garantice condiciones óptimas para cada zona del invernadero.", logic:["Monitorizar humedad en tiempo real","Mostrar estado en OLED","Activar servomotor si el suelo está seco"], instructions:["Conecta el sensor de humedad a la IoT:bit.","Programa MakeCode para leer la humedad.","Muestra el estado en OLED y activa el servomotor si está seco."], puzzle:"Pieza de puzle: 1"},
@@ -488,6 +488,24 @@
       renderAll();
     }
 
+	async function resetSheet() {
+	  const API_URL = "TU_URL_DEL_WEB_APP"; // Pega aquí la URL de tu Web App
+
+	  const response = await fetch(API_URL, {
+	    method: "POST",
+	    headers: {"Content-Type": "application/json"},
+	    body: JSON.stringify({reset: true})  // ⚡ Indicamos que es un reset
+	  });
+
+	  const result = await response.text();
+	  console.log(result);  // Debería mostrar "SHEET_RESET"
+	}
+	
+	function resetAll() {
+  		resetProgress();  // Tu función que reinicia la página
+  		resetSheet();     // La que reinicia la hoja de cálculo
+	}
+
     function renderTeacherArea() {
       const teacherArea = $("teacher-area"), login = $("teacher-login"), btn = $("teacher-toggle-btn");
       if (teacherMode) {
@@ -529,7 +547,7 @@
     }
 
     $("validate-btn").addEventListener("click", validateCurrentMission);
-    $("reset-btn").addEventListener("click", resetProgress);
+    $("reset-btn").addEventListener("click", resetAll);
     $("teacher-toggle-btn").addEventListener("click", toggleTeacherMode);
     $("code-input").addEventListener("keydown", (e) => { if (e.key === "Enter") validateCurrentMission(); });
     $("teacher-password").addEventListener("keydown", (e) => { if (e.key === "Enter") toggleTeacherMode(); });
