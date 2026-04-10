@@ -204,8 +204,8 @@
       renderAll();
     }
 
-async function resetForzado() {
-  // 1. Reset en memoria (frontend)
+async function resetComoEscritura() {
+  // 1. Reset local
   teamProgress = Object.fromEntries(
     teams.map(team => [
       team,
@@ -219,38 +219,26 @@ async function resetForzado() {
 
   selectedMission = 0;
   selectedTeam = teams[0];
-
-  // 2. Refrescar interfaz
   renderAll();
 
-  // 3. Intentar sobrescribir Google Sheet con estado vacío
-  try {
+  // 2. Enviar reset como si fuera guardado normal
+  for (const team of teams) {
     await fetch(API_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        reset: true,
-        data: Object.fromEntries(
-          teams.map(team => [
-            team,
-            {
-              puntos: 0,
-              completadas: []
-            }
-          ])
-        )
+        equipo: team,
+        puntos: 0,
+        completadas: []
       })
     });
-  } catch (e) {
-    console.warn("No se pudo resetear el Sheet, pero el frontend sí:", e);
   }
 
-  console.log("Reset completo (frontend + intento backend)");
+  console.log("Reset enviado como escrituras normales");
 }
 	
 	function resetAll() {
   		resetProgress();  // Tu función que reinicia la página
-  		resetSheet();     // La que reinicia la hoja de cálculo
+  		resetComoEscritura();     // La que reinicia la hoja de cálculo
 	}
 
     function renderTeacherArea() {
