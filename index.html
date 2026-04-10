@@ -10,61 +10,155 @@
 
 <body>
   <div class="container">
-
-    <!-- HERO -->
     <section class="panel hero">
       <div>
         <div class="badge">🚀 <span>Gamificación · micro:bit + IoT:bit + MakeCode</span></div>
         <h1>La Colonia Marciana</h1>
         <p class="lead">
-          Durante la noche marciana, varios sistemas de la base han fallado...
+          Durante la noche marciana, varios sistemas de la base <strong style="color:#ffb389;">Horizonte Rojo</strong> han quedado desincronizados.
+          Cada equipo deberá usar su <strong style="color:#9ee9ff;">micro:bit</strong> y sus sensores para supervisar, reparar y reactivar la colonia antes del fallo crítico.
         </p>
-
         <div class="stats">
           <div class="panel-dark stat"><div class="label">Misiones</div><div class="value">8</div></div>
           <div class="panel-dark stat"><div class="label">Tecnología</div><div class="value">micro:bit + IoT:bit</div></div>
           <div class="panel-dark stat"><div class="label">Programación</div><div class="value">MakeCode</div></div>
         </div>
       </div>
+      <div class="panel-dark" style="padding:24px; min-height:280px; display:flex; flex-direction:column; justify-content:space-between;">
+        <div>
+          <div class="small-title" style="margin-bottom:0; color:#b5ecff;">Estado de la estación</div>
+          <div class="status-list">
+            <div class="status-row"><span>Agua</span><span id="status-energy" class="pill amber">Inestable</span></div>
+            <div class="status-row"><span>Cultivos</span><span id="status-crops" class="pill green">Pendiente</span></div>
+            <div class="status-row"><span>Panel central</span><span id="status-radar" class="pill cyan">Parcial</span></div>
+            <div class="status-row"><span>Escudo / antena</span><span id="status-comms" class="pill violet">Desalineados</span></div>
+          </div>
+        </div>
+        <div class="panel-dark" style="padding:16px; border-color: rgba(255,138,74,0.22); background: rgba(255,138,74,0.12);">
+          <div style="font-size:14px; font-weight:700; color:#ffd7c2;">Progreso de la misión</div>
+          <p style="margin-top:10px; color:rgba(255,255,255,0.72);">Sistemas restaurados por <strong id="active-team-inline">Astrofísicos</strong>: <strong id="completed-count">0/8</strong></p>
+          <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+          <div class="panel-dark" style="padding:12px; margin-top:14px;">Equipo activo: <strong id="active-team" style="color:#9ee9ff;">Astrofísicos</strong></div>
+          <div id="all-complete-banner" class="message success" style="margin-top:14px; display:none;">COLONIA RESTAURADA</div>
+        </div>
+      </div>
     </section>
 
-    <!-- MISIONES -->
-    <section class="panel section">
+    <section class="panel section" style="padding:32px;">
       <div class="section-header">
-        <h2>Misiones</h2>
-        <button id="reset-btn" class="btn">Reiniciar</button>
+        <div>
+          <h2>Centro de desbloqueo de misiones</h2>
+          <p class="subtext">Supera cada reto original de micro:bit para activar el siguiente sistema de la base marciana.</p>
+        </div>
+        <button id="reset-btn" class="btn">Reiniciar progreso</button>
       </div>
       <div id="mission-grid" class="mission-grid"></div>
     </section>
 
-    <!-- MISION DETALLE -->
-    <section class="main-grid">
-      <article id="mission-card" class="panel"></article>
-
+    <section class="section main-grid">
+      <article id="mission-card" class="panel mission-card"></article>
       <aside class="panel side-panel">
-        <h3>Panel del comandante</h3>
-
-        <select id="team-select"></select>
-
-        <div id="selected-mission-title"></div>
-        <div id="selected-mission-points"></div>
-
-        <input id="code-input" placeholder="Clave misión" />
-
-        <button id="validate-btn" class="btn btn-primary">
-          Validar
-        </button>
-
-        <div id="unlock-message"></div>
+        <h3 style="font-size:1.4rem;">Panel del comandante</h3>
+        <p class="subtext">Usa los controles para validar misiones, asignar puntos y desbloquear el siguiente sistema de la colonia.</p>
+        <div class="stack" style="margin-top:18px;">
+          <div class="panel-dark field">
+            <label for="team-select">Equipo en turno</label>
+            <select id="team-select"></select>
+          </div>
+          <div class="panel-dark info-box">
+            <div class="small-title">Misión seleccionada</div>
+            <div id="selected-mission-title" style="font-weight:700;"></div>
+            <div id="selected-mission-points" style="margin-top:8px; color:#9ee9ff; font-size:14px;"></div>
+          </div>
+          <div class="panel-dark info-box">
+            <div class="small-title">Estado actual</div>
+            <div id="selected-mission-state" style="font-weight:700;"></div>
+          </div>
+          <div class="panel-dark field">
+            <label for="code-input">Clave secreta de la misión</label>
+            <input id="code-input" type="text" placeholder="Introduce la clave" autocomplete="off" />
+            <div class="hint">La clave solo debe conocerla el profesorado.</div>
+          </div>
+          <button id="validate-btn" class="btn btn-primary">Validar misión y desbloquear la siguiente</button>
+          <div id="unlock-message" style="display:none;"></div>
+          <div id="completion-box" class="message success" style="display:none;">Todos los sistemas han sido reparados. El equipo puede ejecutar la misión final y completar el puzle de la estación.</div>
+          <div id="help-box" class="message info">Completa la misión actual para activar la siguiente. El progreso queda visible en el tablero general.</div>
+        </div>
       </aside>
     </section>
 
-    <!-- TABLERO -->
-    <section class="panel section">
-      <h2>Tablero</h2>
-      <div id="board-grid"></div>
+    <section class="panel section" style="padding:32px;">
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+        <span style="font-size:2rem;">🎮</span>
+        <h2>Tablero de gamificación del aula</h2>
+      </div>
+      <p class="subtext">Cada misión superada otorga una pieza de puzle, imprescindible para desbloquear el reto final.</p>
+      <div id="board-grid" class="board-grid" style="margin-top:24px;"></div>
+      <div class="two-cols">
+        <div class="panel-dark sequence-wrap">
+          <h3 style="color:#ffd7c2; font-size:1.05rem;">Secuencia de restauración</h3>
+          <div id="sequence-list" class="sequence-list"></div>
+        </div>
+        <div class="panel-dark ranking-wrap">
+          <h3 style="color:#9ee9ff; font-size:1.05rem;">Clasificación por equipos</h3>
+          <div id="ranking-list" class="ranking-list"></div>
+        </div>
+      </div>
     </section>
 
+    <section class="panel section control-hud" style="padding:24px; border-style:dashed; border-color: rgba(255,138,74,0.22); background: rgba(0,0,0,0.22);">
+      <div class="control-topbar">
+        <div>
+          <h2 style="font-size:1.6rem; color:#ffd7c2;">Centro de Control de Misiones</h2>
+          <p class="subtext">Área restringida para supervisar claves, validar protocolos y coordinar el avance de la colonia.</p>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+          <div class="control-badge"><span class="status-led"></span> Conexión orbital estable</div>
+          <button id="teacher-toggle-btn" class="btn teacher-toggle">Abrir Centro de Control de Misiones</button>
+        </div>
+      </div>
+      <div class="hud-grid">
+        <div class="radar-wrap">
+          <div class="radar" aria-hidden="true">
+            <div class="radar-sweep"></div>
+            <div class="radar-dot dot-a"></div>
+            <div class="radar-dot dot-b"></div>
+            <div class="radar-dot dot-c"></div>
+          </div>
+        </div>
+        <div class="hud-panels">
+          <div class="hud-panel">
+            <div class="label">Estado del centro de mando</div>
+            <div class="value">Monitorización activa de sensores, códigos de acceso, progreso por equipos y protocolos MakeCode de la estación.</div>
+            <div class="hud-mini-grid">
+              <div class="hud-mini"><span>Canal</span><strong>IOT-BIT</strong></div>
+              <div class="hud-mini"><span>Sector</span><strong>Horizonte Rojo</strong></div>
+              <div class="hud-mini"><span>Modo</span><strong>Supervisión</strong></div>
+            </div>
+          </div>
+          <div id="teacher-login" style="max-width:100%;" class="panel-dark teacher-box">
+            <label for="teacher-password">Clave de acceso del comandante</label>
+            <input id="teacher-password" type="password" placeholder="Introduce la clave de acceso" />
+            <div id="teacher-error" class="message error" style="display:none; margin-top:12px;"></div>
+          </div>
+          <div id="teacher-area" style="display:none;">
+            <div id="teacher-grid" class="teacher-grid"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div id="imageModal" class="image-modal" onclick="closeMissionImage(event)">
+      <div class="image-modal-content" onclick="event.stopPropagation()">
+        <div class="image-modal-header">
+          <div id="imageModalTitle" class="image-modal-title">Esquema visual</div>
+          <button class="image-modal-close" type="button" onclick="closeMissionImage()">Cerrar</button>
+        </div>
+        <div class="image-modal-body">
+          <img id="imageModalImg" src="" alt="Esquema visual de bloques" />
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="./js/app.js"></script>
