@@ -1,1 +1,62 @@
+:root {
+  --bg-top: #180c0a;
+  --bg-main: #130b0a;
+  --bg-bottom: #0b0f1c;
+  --panel: rgba(255,255,255,0.06);
+  --border: rgba(255,255,255,0.1);
+  --text: #ffffff;
+  --green: #8df0b2;
+}
 
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial;
+  color: var(--text);
+  background: linear-gradient(to bottom, var(--bg-top), var(--bg-bottom));
+}
+
+.container {
+  padding: 20px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.mission-grid {
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  gap: 10px;
+}
+
+.mission-button {
+  padding: 12px;
+  background: #222;
+  color: white;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.progress-bar {
+  height: 10px;
+  background: #333;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--green);
+  width: 0%;
+}
