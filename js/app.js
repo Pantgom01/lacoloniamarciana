@@ -11,7 +11,7 @@
     ];
     const missionCodes = ["TANQUE-AGUA","SUELO-HUMEDO","BASE-PANEL","SONAR-SEGURO","TERMOSTATO-ROJO","LUZ-OLED","ANTENA-VERDE","ESCUDO-NORTE"];
     const missionPoints = [50,75,100,125,150,175,200,250];
-    const teams = ["Astrofísicos","Astrobiólogos","Geólogos Planetarios","Ingenieros de Comunicaciones", "Sanitarios", "Programadores"];
+    const teams = ["Astrofísicos","Astrobiólogos","Geólogos Planetarios","Ingenieros de Comunicaciones", "Sanitarios", "Programadores", "Técnico Robóticos", "Biotecnólogos"];
     const teacherPassword = "COMANDANTE-ARES";
 
     let selectedMission = 0, selectedTeam = teams[0], teacherMode = false;
