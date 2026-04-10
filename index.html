@@ -2,10 +2,10 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>La Colonia Marciana · micro:bit</title>
 
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="./css/styles.css">
 </head>
 
 <body>
@@ -17,59 +17,56 @@
         <div class="badge">🚀 <span>Gamificación · micro:bit + IoT:bit + MakeCode</span></div>
         <h1>La Colonia Marciana</h1>
         <p class="lead">
-          Durante la noche marciana, varios sistemas de la base <strong style="color:#ffb389;">Horizonte Rojo</strong>
-          han quedado desincronizados.
+          Durante la noche marciana, varios sistemas de la base han fallado...
         </p>
+
         <div class="stats">
           <div class="panel-dark stat"><div class="label">Misiones</div><div class="value">8</div></div>
           <div class="panel-dark stat"><div class="label">Tecnología</div><div class="value">micro:bit + IoT:bit</div></div>
           <div class="panel-dark stat"><div class="label">Programación</div><div class="value">MakeCode</div></div>
         </div>
       </div>
-
-      <div class="panel-dark" style="padding:24px;">
-        <div class="small-title">Estado de la estación</div>
-        <div class="status-list">
-          <div class="status-row"><span>Agua</span><span id="status-energy" class="pill amber">Inestable</span></div>
-          <div class="status-row"><span>Cultivos</span><span id="status-crops" class="pill green">Pendiente</span></div>
-          <div class="status-row"><span>Panel central</span><span id="status-radar" class="pill cyan">Parcial</span></div>
-          <div class="status-row"><span>Escudo / antena</span><span id="status-comms" class="pill violet">Desalineados</span></div>
-        </div>
-
-        <div class="panel-dark" style="padding:16px; margin-top:16px;">
-          <p>Equipo: <strong id="active-team">Astrofísicos</strong></p>
-          <p>Progreso: <strong id="completed-count">0/8</strong></p>
-          <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
-        </div>
-      </div>
     </section>
 
-    <!-- GRID -->
-    <section class="panel section" style="padding:32px;">
-      <h2>Misiones</h2>
+    <!-- MISIONES -->
+    <section class="panel section">
+      <div class="section-header">
+        <h2>Misiones</h2>
+        <button id="reset-btn" class="btn">Reiniciar</button>
+      </div>
       <div id="mission-grid" class="mission-grid"></div>
     </section>
 
-    <!-- DETALLE -->
-    <section class="section main-grid">
-      <article id="mission-card" class="panel mission-card"></article>
+    <!-- MISION DETALLE -->
+    <section class="main-grid">
+      <article id="mission-card" class="panel"></article>
 
       <aside class="panel side-panel">
         <h3>Panel del comandante</h3>
 
         <select id="team-select"></select>
 
-        <input id="code-input" placeholder="Código misión">
+        <div id="selected-mission-title"></div>
+        <div id="selected-mission-points"></div>
 
-        <button id="validate-btn" class="btn btn-primary">Validar</button>
-        <button id="reset-btn" class="btn">Reset</button>
+        <input id="code-input" placeholder="Clave misión" />
+
+        <button id="validate-btn" class="btn btn-primary">
+          Validar
+        </button>
 
         <div id="unlock-message"></div>
       </aside>
     </section>
 
+    <!-- TABLERO -->
+    <section class="panel section">
+      <h2>Tablero</h2>
+      <div id="board-grid"></div>
+    </section>
+
   </div>
 
-  <script src="js/app.js"></script>
+  <script src="./js/app.js"></script>
 </body>
 </html>
