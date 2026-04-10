@@ -204,16 +204,49 @@
       renderAll();
     }
 
-	async function resetSheet() {
-	  await fetch(API_URL, {
-	    method: "POST",
-	    headers: {"Content-Type": "application/json"},
-	    body: JSON.stringify({reset: true})
-	  });
+async function resetForzado() {
+  // 1. Reset en memoria (frontend)
+  teamProgress = Object.fromEntries(
+    teams.map(team => [
+      team,
+      {
+        unlockedMissions: [0],
+        completedMissions: [],
+        score: 0
+      }
+    ])
+  );
 
-	  // No intentamos leer la respuesta → evitamos CORS
-	  console.log("Petición de reset enviada"); 
-	}
+  selectedMission = 0;
+  selectedTeam = teams[0];
+
+  // 2. Refrescar interfaz
+  renderAll();
+
+  // 3. Intentar sobrescribir Google Sheet con estado vacío
+  try {
+    await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        reset: true,
+        data: Object.fromEntries(
+          teams.map(team => [
+            team,
+            {
+              puntos: 0,
+              completadas: []
+            }
+          ])
+        )
+      })
+    });
+  } catch (e) {
+    console.warn("No se pudo resetear el Sheet, pero el frontend sí:", e);
+  }
+
+  console.log("Reset completo (frontend + intento backend)");
+}
 	
 	function resetAll() {
   		resetProgress();  // Tu función que reinicia la página
